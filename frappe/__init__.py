@@ -86,6 +86,7 @@ local = Local()
 bench = Bench()
 cache: Optional["RedisWrapper"] = None
 STANDARD_USERS = ("Guest", "Administrator")
+DISABLE_DATABASE_CONNECTION_POOLING = None
 
 _qb_patched: dict[str, bool] = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
