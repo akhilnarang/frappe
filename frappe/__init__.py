@@ -2065,6 +2065,7 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
+	timeout=None,
 ):
 	"""Get Print Format for given document.
 
@@ -2073,7 +2074,10 @@ def get_print(
 	:param print_format: Print Format name. Default 'Standard',
 	:param style: Print Format style.
 	:param as_pdf: Return as PDF. Default False.
-	:param password: Password to encrypt the pdf with. Default None"""
+	:param password: Password to encrypt the pdf with. Default None
+	:param timeout: Timeout for pdf generation.
+
+	"""
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
 
@@ -2090,7 +2094,7 @@ def get_print(
 		pdf_options["password"] = password
 
 	html = get_response_content("printview")
-	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
+	return get_pdf(html, options=pdf_options, output=output, timeout=timeout) if as_pdf else html
 
 
 def attach_print(
@@ -2105,6 +2109,7 @@ def attach_print(
 	print_letterhead=True,
 	password=None,
 	letterhead=None,
+	timeout=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
@@ -2124,18 +2129,19 @@ def attach_print(
 	local.flags.ignore_print_permissions = True
 
 	with print_language(lang or local.lang):
-		content = ""
 		if cint(print_settings.send_print_as_pdf):
 			ext = ".pdf"
 			kwargs["as_pdf"] = True
 			content = (
-				get_pdf(html, options={"password": password} if password else None)
+				get_pdf(html, options={"password": password} if password else None, timeout=timeout)
 				if html
-				else get_print(doctype, name, **kwargs)
+				else get_print(doctype, name, timeout=timeout, **kwargs)
 			)
 		else:
 			ext = ".html"
-			content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+			content = html or scrub_urls(get_print(doctype, name, timeout=timeout, **kwargs)).encode(
+				"utf-8"
+			)
 
 	local.flags.ignore_print_permissions = False
 

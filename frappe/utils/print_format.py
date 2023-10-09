@@ -18,7 +18,13 @@ from frappe.www.printview import validate_print_permission
 
 @frappe.whitelist()
 def download_multi_pdf(
-	doctype, name, format=None, no_letterhead=False, letterhead=None, options=None
+	doctype,
+	name,
+	format=None,
+	no_letterhead=False,
+	letterhead=None,
+	options=None,
+	timeout=None,
 ):
 	"""
 	Concatenate multiple docs as PDF .
@@ -80,6 +86,7 @@ def download_multi_pdf(
 				no_letterhead=no_letterhead,
 				letterhead=letterhead,
 				pdf_options=options,
+				timeout=timeout,
 			)
 		frappe.local.response.filename = "{doctype}.pdf".format(
 			doctype=doctype.replace(" ", "-").replace("/", "-")
@@ -97,6 +104,7 @@ def download_multi_pdf(
 						no_letterhead=no_letterhead,
 						letterhead=letterhead,
 						pdf_options=options,
+						timeout=timeout,
 					)
 				except Exception:
 					frappe.log_error(
@@ -124,14 +132,28 @@ def read_multi_pdf(output):
 
 @frappe.whitelist(allow_guest=True)
 def download_pdf(
-	doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
+	doctype,
+	name,
+	format=None,
+	doc=None,
+	no_letterhead=0,
+	language=None,
+	letterhead=None,
+	timeout=None,
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
 	with print_language(language):
 		pdf_file = frappe.get_print(
-			doctype, name, format, doc=doc, as_pdf=True, letterhead=letterhead, no_letterhead=no_letterhead
+			doctype,
+			name,
+			format,
+			doc=doc,
+			as_pdf=True,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			timeout=timeout,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(
@@ -142,16 +164,23 @@ def download_pdf(
 
 
 @frappe.whitelist()
-def report_to_pdf(html, orientation="Landscape"):
+def report_to_pdf(html, orientation="Landscape", timeout=None):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
+	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation}, timeout=timeout)
 	frappe.local.response.type = "pdf"
 
 
 @frappe.whitelist()
 def print_by_server(
-	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
+	doctype,
+	name,
+	printer_setting,
+	print_format=None,
+	doc=None,
+	no_letterhead=0,
+	file_path=None,
+	timeout=None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -165,7 +194,14 @@ def print_by_server(
 		conn = cups.Connection()
 		output = PdfWriter()
 		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
+			doctype,
+			name,
+			print_format,
+			doc=doc,
+			no_letterhead=no_letterhead,
+			as_pdf=True,
+			output=output,
+			timeout=timeout,
 		)
 		if not file_path:
 			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")

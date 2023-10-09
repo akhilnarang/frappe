@@ -76,7 +76,7 @@ def pdf_footer_html(soup, head, content, styles, html_id, css):
 	)
 
 
-def get_pdf(html, options=None, output: PdfWriter | None = None):
+def get_pdf(html, options=None, output: PdfWriter | None = None, timeout: float | None = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
@@ -93,7 +93,7 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 		# Set filename property to false, so no file is actually created
 		# defaults to redirecting stdout
 		with pipe_to_log(logger.info):
-			filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
+			filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True, timeout=timeout)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))

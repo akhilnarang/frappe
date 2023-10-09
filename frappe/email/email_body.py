@@ -254,8 +254,8 @@ class EMail:
 
 		add_attachment(fname, fcontent, content_type, parent, content_id, inline)
 
-	def add_pdf_attachment(self, name, html, options=None):
-		self.add_attachment(name, get_pdf(html, options), "application/octet-stream")
+	def add_pdf_attachment(self, name, html, options=None, timeout=None):
+		self.add_attachment(name, get_pdf(html, options, timeout=timeout), "application/octet-stream")
 
 	def validate(self):
 		"""validate the Email Addresses"""
