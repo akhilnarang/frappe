@@ -35,11 +35,6 @@ export default class BulkOperations {
 			return;
 		}
 
-		if (valid_docs.length > 50) {
-			frappe.msgprint(__("You can only print upto 50 documents at a time"));
-			return;
-		}
-
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
 			fields: [
@@ -78,6 +73,13 @@ export default class BulkOperations {
 					depends_on: 'eval:doc.page_size == "Custom"',
 					default: print_settings.pdf_page_width,
 				},
+				{
+					fieldtype: "Check",
+					label: __("Print in the background (required for >50 documents)"),
+					fieldname: "print_async",
+					default: valid_docs.length > 50,
+					read_only: valid_docs.length > 50,
+				},
 			],
 		});
 
@@ -102,28 +104,48 @@ export default class BulkOperations {
 				pdf_options = JSON.stringify({ "page-size": args.page_size });
 			}
 
-			const w = window.open(
-				"/api/method/frappe.utils.print_format.download_multi_pdf?" +
-					"doctype=" +
-					encodeURIComponent(this.doctype) +
-					"&name=" +
-					encodeURIComponent(json_string) +
-					"&format=" +
-					encodeURIComponent(print_format) +
-					"&no_letterhead=" +
-					(with_letterhead ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(letterhead) +
-					"&options=" +
-					encodeURIComponent(pdf_options)
-			);
+			if (args.print_async) {
+				frappe
+					.xcall("frappe.utils.print_format.download_multi_pdf", {
+						doctype: this.doctype,
+						name: json_string,
+						format: print_format,
+						no_letterhead: with_letterhead ? "0" : "1",
+						letterhead: letterhead,
+						options: pdf_options,
+						print_async: 1,
+					})
+					.then((response) => {
+						dialog.hide();
+						frappe.msgprint(
+							__(
+								"The requested print job is running in the background, please keep this tab open to be notified when it is complete."
+							)
+						);
+						frappe.realtime.task_subscribe(response.message);
+					});
+			} else {
+				const w = window.open(
+					"/api/method/frappe.utils.print_format.download_multi_pdf?" +
+						"doctype=" +
+						encodeURIComponent(this.doctype) +
+						"&name=" +
+						encodeURIComponent(json_string) +
+						"&format=" +
+						encodeURIComponent(print_format) +
+						"&no_letterhead=" +
+						(with_letterhead ? "0" : "1") +
+						"&letterhead=" +
+						encodeURIComponent(letterhead) +
+						"&options=" +
+						encodeURIComponent(pdf_options)
+				);
 
-			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
-				return;
+				if (!w) {
+					frappe.msgprint(__("Please enable pop-ups"));
+				}
 			}
 		});
-
 		dialog.show();
 	}
 
