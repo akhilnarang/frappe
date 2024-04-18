@@ -159,11 +159,19 @@ frappe.ui.form.on("Number Card", {
 		}
 	},
 
-	set_report_field_options: function (frm) {
+	set_report_field_options: async function (frm) {
 		let filters = frm.doc.filters_json.length > 2 ? JSON.parse(frm.doc.filters_json) : null;
 		if (frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2) {
 			filters = frappe.dashboard_utils.get_all_filters(frm.doc);
 		}
+		let report_filters = await frappe.report_utils.get_report_filters(frm.doc.report_name);
+		let values = frappe.report_utils.get_filter_values(report_filters);
+		Object.keys(filters)
+			.filter((key) => filters[key] === "FETCH_FROM_REPORT")
+			.forEach((key) => {
+				filters[key] = values[key];
+			});
+
 		frappe
 			.xcall("frappe.desk.query_report.run", {
 				report_name: frm.doc.report_name,
@@ -196,7 +204,7 @@ frappe.ui.form.on("Number Card", {
 			});
 	},
 
-	render_filters_table: function (frm) {
+	render_filters_table: async function (frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let is_document_type = frm.doc.type == "Document Type";
 		let is_dynamic_filter = (f) => ["Date", "DateRange"].includes(f.fieldtype) && f.default;
@@ -222,7 +230,7 @@ frappe.ui.form.on("Number Card", {
 			let set_filters = false;
 			frm.filters.forEach((f) => {
 				if (is_dynamic_filter(f)) {
-					filters[f.fieldname] = f.default;
+					filters[f.fieldname] = "FETCH_FROM_REPORT";
 					set_filters = true;
 				}
 			});
@@ -252,9 +260,14 @@ frappe.ui.form.on("Number Card", {
 			}
 		} else if (frm.filters.length) {
 			fields = frm.filters.filter((f) => f.fieldname);
+			let report_filters = await frappe.report_utils.get_report_filters(frm.doc.report_name);
+			let values = frappe.report_utils.get_filter_values(report_filters);
 			fields.map((f) => {
 				if (filters[f.fieldname]) {
 					let condition = "=";
+					if (filters[f.fieldname] === "FETCH_FROM_REPORT") {
+						filters[f.fieldname] = values[f.fieldname];
+					}
 					const filter_row = $(`<tr>
 							<td>${f.label}</td>
 							<td>${condition}</td>

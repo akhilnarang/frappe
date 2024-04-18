@@ -201,11 +201,22 @@ frappe.dashboard_utils = {
 		return fields;
 	},
 
-	get_all_filters(doc) {
+	async get_all_filters(doc) {
 		let filters = doc.filters_json ? JSON.parse(doc.filters_json) : null;
 		let dynamic_filters = doc.dynamic_filters_json
 			? JSON.parse(doc.dynamic_filters_json)
 			: null;
+
+		if (doc.type === "Report") {
+			let report_filters = await frappe.report_utils.get_report_filters(doc.report_name);
+			let values = frappe.report_utils.get_filter_values(report_filters);
+			Object.keys(filters)
+				.filter((key) => filters[key] === "FETCH_FROM_REPORT")
+				.forEach((key) => {
+					console.log(`setting filter ${key} to ${values[key]}`);
+					filters[key] = values[key];
+				});
+		}
 
 		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
 			return filters;

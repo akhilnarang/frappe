@@ -119,8 +119,8 @@ export default class NumberCardWidget extends Widget {
 		);
 	}
 
-	get_settings(type) {
-		this.filters = this.get_filters();
+	async get_settings(type) {
+		this.filters = await this.get_filters();
 		const settings_map = {
 			Custom: {
 				method: this.card_doc.method,
@@ -150,8 +150,8 @@ export default class NumberCardWidget extends Widget {
 		return settings_map[type];
 	}
 
-	get_filters() {
-		return frappe.dashboard_utils.get_all_filters(this.card_doc);
+	async get_filters() {
+		return await frappe.dashboard_utils.get_all_filters(this.card_doc);
 	}
 
 	async render_card() {
@@ -163,7 +163,7 @@ export default class NumberCardWidget extends Widget {
 			this.card_doc.type = "Document Type";
 		}
 
-		this.settings = this.get_settings(this.card_doc.type);
+		this.settings = await this.get_settings(this.card_doc.type);
 		await this.get_data();
 
 		this.render_number();
