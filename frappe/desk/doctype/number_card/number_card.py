@@ -10,7 +10,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint, flt
+from frappe.utils import flt
 
 
 class NumberCard(Document):
@@ -63,7 +63,7 @@ class NumberCard(Document):
 
 		elif self.type == "Report":
 			if not (self.report_name and self.report_field and self.function):
-				frappe.throw(_("Report Name, Report Field and Fucntion are required to create a number card"))
+				frappe.throw(_("Report Name, Report Field and Function are required to create a number card"))
 
 		elif self.type == "Custom":
 			if not self.method:
@@ -127,7 +127,6 @@ def has_permission(doc, ptype, user):
 @frappe.whitelist()
 def get_result(doc, filters, to_date=None):
 	doc = frappe.parse_json(doc)
-	fields = []
 	sql_function_map = {
 		"Count": "count",
 		"Sum": "sum",
