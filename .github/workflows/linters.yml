@@ -109,3 +109,14 @@ jobs:
           python-version: '3.13'
           cache: pip
       - uses: pre-commit/action@v3.0.1
+
+      - name: Comment on failure
+        if: failure()
+        run: gh pr comment "$NUMBER" --body "$BODY"
+        env:
+            GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+            GH_REPO: ${{ github.repository }}
+            NUMBER: ${{ github.event.pull_request.number }}
+            BODY: >
+              pre-commit checks are failing.
+              Please setup and run [pre-commit](https://pre-commit.com/) locally to fix the issues.
