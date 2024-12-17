@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 
+
 import copy
 import faulthandler
 import functools
@@ -29,11 +30,9 @@ from collections.abc import Callable, Iterable
 from typing import (
 	TYPE_CHECKING,
 	Any,
-	Generic,
 	Literal,
 	Optional,
 	TypeAlias,
-	TypeVar,
 	Union,
 	overload,
 )
@@ -50,9 +49,7 @@ from frappe.query_builder.utils import (
 )
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
-
 from .bench_interface import Bench
-
 # Local application imports
 from .exceptions import *
 from .types import Filters, FilterSignature, FilterTuple, _dict
