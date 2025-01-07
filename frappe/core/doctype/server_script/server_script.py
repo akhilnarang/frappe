@@ -3,6 +3,7 @@
 
 from functools import partial
 from itertools import chain
+from string import ascii_letters, digits
 from typing import TYPE_CHECKING
 
 import frappe
@@ -85,6 +86,10 @@ class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.check_if_compilable_in_restricted_context()
+
+		allowed_characters = ascii_letters + digits + "-"
+		if not all(c in allowed_characters for c in self.name):
+			frappe.throw("Package name can only contain letters, digits and hyphens")
 
 	def on_update(self):
 		self.sync_scheduled_job_type()

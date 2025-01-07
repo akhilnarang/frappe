@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path
+from string import ascii_letters, digits
 
 import frappe
 from frappe.model.document import Document
@@ -31,6 +32,10 @@ class ModuleDef(Document):
 
 		if not self.app_name and not self.custom:
 			self.app_name = get_module_app(self.name)
+
+		allowed_characters = ascii_letters + digits + "-_. "
+		if not all(c in allowed_characters for c in self.module_name):
+			frappe.throw("Module name contains an invalid character")
 
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
