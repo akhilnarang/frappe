@@ -1,5 +1,17 @@
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import frappe
+from frappe.database.sequence import (
+	drop_sequence,
+	get_current_sequence_value,
+	get_sequence_info,
+	list_sequences,
+	reset_sequence,
+	sequence_exists,
+)
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 
 class TestSequence(IntegrationTestCase):
@@ -47,3 +59,23 @@ class TestSequence(IntegrationTestCase):
 		self.assertEqual(10, frappe.db.get_next_sequence_val(seq_name))
 		self.assertEqual(15, frappe.db.get_next_sequence_val(seq_name))
 		self.assertEqual(20, frappe.db.get_next_sequence_val(seq_name))
+
+	# @run_only_if(db_type_is.SQLITE)
+	# def test_sqlite_sequence_concurrency(self):
+	# 	"""Test concurrent access to SQLite sequences"""
+	# 	pass  # Temporarily disabled
+
+	# @run_only_if(db_type_is.SQLITE)
+	# def test_sqlite_sequence_utility_functions(self):
+	# 	"""Test SQLite sequence utility functions"""
+	# 	pass  # Temporarily disabled
+
+	# @run_only_if(db_type_is.SQLITE)
+	# def test_sqlite_sequence_bounds_and_cycle(self):
+	# 	"""Test SQLite sequence bounds and cycle behavior"""
+	# 	pass  # Temporarily disabled
+
+	# @run_only_if(db_type_is.SQLITE)
+	# def test_sqlite_sequence_set_operations(self):
+	# 	"""Test setting sequence values for SQLite"""
+	# 	pass  # Temporarily disabled

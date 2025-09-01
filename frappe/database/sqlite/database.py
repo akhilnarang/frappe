@@ -3,6 +3,7 @@ import sqlite3
 import warnings
 from datetime import date, datetime, time
 from pathlib import Path
+from uuid import UUID
 
 import frappe
 from frappe.database.database import (
@@ -24,6 +25,12 @@ class SQLiteExceptionUtil:
 	InternalError = sqlite3.InternalError
 	SQLError = sqlite3.OperationalError
 	DataError = sqlite3.DataError
+
+	# Custom exception for sequence limit exceeded
+	class SequenceGeneratorLimitExceeded(sqlite3.OperationalError):
+		pass
+
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
@@ -123,6 +130,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
 		sqlite3.register_converter("date", lambda x: date.fromisoformat(x.decode()))
 		sqlite3.register_converter("time", lambda x: time.fromisoformat(x.decode()))
+
+		# Register UUID adapter and converter for proper UUID handling
+		sqlite3.register_adapter(UUID, lambda u: str(u))
+		sqlite3.register_converter("uuid", lambda x: str(x.decode()) if x else None)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",

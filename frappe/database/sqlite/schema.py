@@ -33,9 +33,10 @@ class SQLiteTable(DBTable):
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
-			name_column = "name INTEGER PRIMARY KEY AUTOINCREMENT"
+			name_column = "name INTEGER PRIMARY KEY"
+			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 		elif not self.meta.issingle and self.meta.autoname == "UUID":
-			name_column = "name TEXT PRIMARY KEY"
+			name_column = "name uuid PRIMARY KEY"
 
 		additional_definitions = ",\n".join(additional_definitions)
 
