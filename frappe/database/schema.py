@@ -1,5 +1,8 @@
 import re
 
+import pymysql
+from pymysql.constants import ER, FIELD_TYPE
+
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
@@ -478,4 +481,18 @@ def add_column(doctype, column_name, fieldtype, precision=None, length=None, def
 	if default:
 		query += f" default '{default}'"
 
-	frappe.db.sql(query)
+	try:
+		frappe.db.sql(query)
+	except Exception as e:
+		print(frappe.db.db_type, type(e), e.args[0])
+		if frappe.db.db_type == "mariadb" and e.args[0] == 1118:
+			print(f"Dropping column {column_name}")
+			# Drop the column
+			frappe.db.sql(f"alter table `tab{doctype}` drop column {column_name}")
+			frappe.throw(
+				_("You have hit the row size limit on database table: {0}").format(
+					"<a href='https://docs.erpnext.com/docs/v14/user/manual/en/customize-erpnext/articles/maximum-number-of-fields-in-a-form'>"
+					"Maximum Number of Fields in a Form</a>"
+				),
+				title=_("Database Table Row Size Limit"),
+			)

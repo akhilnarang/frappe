@@ -302,7 +302,12 @@ class Database:
 
 			if not (
 				ignore_ddl
-				and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e))
+				and (
+					self.is_missing_column(e)
+					or self.is_table_missing(e)
+					or self.cant_drop_field_or_key(e)
+					or self.is_db_table_size_limit(e)
+				)
 			):
 				raise
 
